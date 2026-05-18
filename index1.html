@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SDGs Plastic-Free Sustainability – Beach Cleanup</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+        }
+
+        body, html {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        /* Beach Background using CSS Gradients */
+        #game-container {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            background: linear-gradient(to bottom, 
+                #4fa4f4 0%, #4fa4f4 25%,    /* Deep Ocean */
+                #8ad1f3 25%, #8ad1f3 40%,   /* Shallow Water */
+                #e8ded1 40%, #eecfa1 55%,   /* Wet Sand */
+                #f5dfbb 55%, #fbead0 100%   /* Dry Sand */
+            );
+        }
+
+        /* Top Header UI */
+        header {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            padding: 20px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            z-index: 10;
+            pointer-events: none; /* Allows clicking "through" the header container if needed */
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: #1e3d59;
+            text-shadow: 2px 2px 4px rgba(255, 255, 255, 0.8);
+            max-width: 60%;
+        }
+
+        #ui-panel {
+            background: rgba(255, 255, 255, 0.85);
+            padding: 15px 25px;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            text-align: right;
+            pointer-events: auto; /* Makes UI interactive */
+        }
+
+        #score-display {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #ff6e40;
+            margin-bottom: 5px;
+        }
+
+        #remaining-display {
+            font-size: 1rem;
+            color: #1e3d59;
+            font-weight: 600;
+        }
+
+        /* Trash Items */
+        .trash {
+            position: absolute;
+            cursor: pointer;
+            transition: transform 0.1s ease, opacity 0.2s ease;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: var(--size);
+            width: var(--box-size);
+            height: var(--box-size);
+            filter: drop-shadow(2px 4px 3px rgba(0,0,0,0.15));
+        }
+
+        .trash:hover {
+            transform: scale(1.1) rotate(var(--rotation)) !important;
+        }
+
+        /* Floating Floating text effect on click */
+        .score-popup {
+            position: absolute;
+            color: #2e7d32;
+            font-weight: bold;
+            font-size: 1.2rem;
+            animation: floatUp 0.8s ease-out forwards;
+            pointer-events: none;
+            z-index: 5;
+            text-shadow: 1px 1px 2px white;
+        }
+
+        @keyframes floatUp {
+            0% { opacity: 1; transform: translateY(0); }
+            100% { opacity: 0; transform: translateY(-40px); }
+        }
+
+        /* Victory Overlay */
+        #victory-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(30, 61, 89, 0.85);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.5s ease;
+        }
+
+        #victory-screen.show {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .victory-box {
+            background: white;
+            padding: 40px 60px;
+            border-radius: 20px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .victory-box h2 {
+            font-size: 3rem;
+            color: #2e7d32;
+            margin-bottom: 10px;
+        }
+
+        .victory-box p {
+            font-size: 1.3rem;
+            color: #555;
+            margin-bottom: 25px;
+        }
+
+        .btn {
+            padding: 12px 30px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: white;
+            background-color: #ff6e40;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: background 0.2s;
+            box-shadow: 0 4px 10px rgba(255, 110, 64, 0.3);
+        }
+
+        .btn:hover {
+            background-color: #ff5722;
+        }
+
+        @keyframes popIn {
+            0% { transform: scale(0.7); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="game-container">
+        <!-- Header Section -->
+        <header>
+            <h1>SDGs Plastic-Free Sustainability – Beach Cleanup</h1>
+            <div id="ui-panel">
+                <div id="score-display">Score: 0</div>
+                <div id="remaining-display">Trash Left: 50</div>
+            </div>
+        </header>
+
+        <!-- Dynamic Trash container -->
+        <div id="beach-trash-layer"></div>
+
+        <!-- End Game Screen -->
+        <div id="victory-screen">
+            <div class="victory-box">
+                <h2>Mission Complete! 🎉</h2>
+                <p id="final-performance">You cleaned up the beach and scored 0 points!</p>
+                <button class="btn" onclick="resetGame()">Go to the Next Level</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Configuration for different types of trash (Emoji icons, sizes, and point variants)
+        const trashTypes = [
+            { name: "Plastic Bottle", icon: "🧴", points: 10, size: "30px", boxSize: "40px" },
+            { name: "Paper Container", icon: "📦", points: 15, size: "35px", boxSize: "45px" },
+            { name: "Plastic Bag", icon: "🛍️", points: 20, size: "28px", boxSize: "38px" },
+            { name: "Styrofoam Box", icon: "⬜", points: 5, size: "45px", boxSize: "55px" },
+            { name: "Drink Cup", icon: "🥤", points: 12, size: "32px", boxSize: "42px" },
+            { name: "Floating Waste Net", icon: "🕸️", points: 25, size: "40px", boxSize: "50px" }
+        ];
+
+        const TOTAL_TRASH = 50;
+        let score = 0;
+        let trashLeft = TOTAL_TRASH;
+
+        const trashLayer = document.getElementById('beach-trash-layer');
+        const scoreDisplay = document.getElementById('score-display');
+        const remainingDisplay = document.getElementById('remaining-display');
+        const victoryScreen = document.getElementById('victory-screen');
+        const finalPerformance = document.getElementById('final-performance');
+
+        // Initialize Game
+        function initGame() {
+            score = 0;
+            trashLeft = TOTAL_TRASH;
+            scoreDisplay.textContent = `Score: ${score}`;
+            remainingDisplay.textContent = `Trash Left: ${trashLeft}`;
+            victoryScreen.classList.remove('show');
+            trashLayer.innerHTML = '';
+
+            for (let i = 0; i < TOTAL_TRASH; i++) {
+                createTrashItem();
+            }
+        }
+
+        // Generate individual trash element
+        function createTrashItem() {
+            // Pick a random trash type
+            const type = trashTypes[Math.floor(Math.random() * trashTypes.length)];
+            
+            const trashEl = document.createElement('div');
+            trashEl.classList.add('trash');
+            trashEl.innerHTML = type.icon;
+            
+            // Apply custom sizes defined in the configurations
+            trashEl.style.setProperty('--size', type.size);
+            trashEl.style.setProperty('--box-size', type.boxSize);
+
+            // Random Rotation (0 to 360 degrees)
+            const randomRotation = Math.floor(Math.random() * 360);
+            trashEl.style.setProperty('--rotation', `${randomRotation}deg`);
+
+            // Constrain positions to the lower half of the screen (55% to 90% vertical window height)
+            // Side boundaries are limited to 5% to 92% to keep them fully on screen
+            const randomX = 5 + Math.random() * 87; 
+            const randomY = 55 + Math.random() * 35; 
+
+            trashEl.style.left = `${randomX}%`;
+            trashEl.style.top = `${randomY}%`;
+            trashEl.style.transform = `rotate(${randomRotation}deg)`;
+
+            // Click handling to collect the trash
+            trashEl.addEventListener('click', function(e) {
+                collectTrash(type, e.clientX, e.clientY);
+                trashEl.remove();
+            }, { once: true }); // ensuring it can only be clicked once
+
+            trashLayer.appendChild(trashEl);
+        }
+
+        // Collection mechanic
+        function collectTrash(type, clickX, clickY) {
+            score += type.points;
+            trashLeft--;
+
+            scoreDisplay.textContent = `Score: ${score}`;
+            remainingDisplay.textContent = `Trash Left: ${trashLeft}`;
+
+            // Trigger score popup where player clicked
+            createScorePopup(`+${type.points}`, clickX, clickY);
+
+            // Check Win condition
+            if (trashLeft === 0) {
+                endGame();
+            }
+        }
+
+        // Popup indicator for visual feedback
+        function createScorePopup(text, x, y) {
+            const popup = document.createElement('div');
+            popup.classList.add('score-popup');
+            popup.innerText = text;
+            popup.style.left = `${x}px`;
+            popup.style.top = `${y}px`;
+            document.body.appendChild(popup);
+
+            setTimeout(() => {
+                popup.remove();
+            }, 800);
+        }
+
+        // Victory Screen trigger
+        function endGame() {
+            finalPerformance.textContent = `Excellent job! You successfully cleaned the beach and earned a total of ${score} points!`;
+            victoryScreen.classList.add('show');
+        }
+
+        // Reset system for "Next Level" looping progression
+        function resetGame() {
+            initGame();
+        }
+
+        // Run game on page load
+        window.onload = initGame;
+    </script>
+</body>
+</html>
